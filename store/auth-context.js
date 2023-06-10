@@ -87,19 +87,21 @@ function AuthContextProvider({ children }) {
 			token = (await userCredentials.user.getIdTokenResult()).token;
 			setToken(token);
 
+			const map = new Map();
+			AsyncStorage.setItem('userId', userCredentials.user.uid.toString());
+			map.set('id', userCredentials.user.uid.toString());
+			map.set('name', name.toString());
+			map.set('email', email.toString());
+			map.set('code', code.toString());
+			map.set('groups', [code.toString()]);
+
+			const userDataStringfy = JSON.stringify(Array.from(map.entries()));
+			console.log('userDataStringfy', userDataStringfy);
+			setUser(userDataStringfy);
+
 			if (!isLogin) {
 				const code = codeGenerator();
-				const map = new Map();
-				AsyncStorage.setItem('userId', userCredentials.user.uid.toString());
-				map.set('id', userCredentials.user.uid.toString());
-				map.set('name', name.toString());
-				map.set('email', email.toString());
-				map.set('code', code.toString());
-				map.set('groups', [code.toString()]);
-
-				const userDataStringfy = JSON.stringify(Array.from(map.entries()));
-				console.log('userDataStringfy', userDataStringfy);
-				setUser(userDataStringfy);
+				
 				let location = await Location.getCurrentPositionAsync({});
 				storeUserData(db, {
 					id: userCredentials.user.uid.toString(),

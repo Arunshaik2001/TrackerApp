@@ -6,6 +6,8 @@ import Button from '../components/ui/Button';
 import QRCode from 'react-native-qrcode-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { arrayUnion } from 'firebase/firestore';
+import { Colors } from '../constants/styles';
+import { LinearGradient } from 'expo-linear-gradient';
 
 function HomeScreen({ route, navigation }) {
 	const [fetchedUser, setFetchedUser] = useState(null);
@@ -74,29 +76,35 @@ function HomeScreen({ route, navigation }) {
 
 	return (
 		<View style={styles.rootContainer}>
-			<Text style={styles.title}>Your Group Code</Text>
-			{fetchedUser && (
-				<Pressable
-					onPress={async () => {
-						const { ownerDetails, membersDetails } = await getMapDetails();
+			<LinearGradient
+				colors={[Colors.primary300, Colors.primary500]}
+				style={styles.gradientContainer}>
+				<Text style={styles.title}>Your Group Code</Text>
+				{fetchedUser && (
+					<Pressable
+						onPress={async () => {
+							const { ownerDetails, membersDetails } = await getMapDetails();
 
-						navigation.navigate('MapsScreen', {
-							ownerDetails: ownerDetails,
-							membersDetails: membersDetails,
-						});
-					}}>
-					<QRCode value={fetchedUser.get('code')} size={250} />
+							navigation.navigate('MapsScreen', {
+								ownerDetails: ownerDetails,
+								membersDetails: membersDetails,
+							});
+						}}
+						style={styles.qrCodeContainer}>
+						<QRCode value={fetchedUser.get('code')} size={250} />
+					</Pressable>
+				)}
+				{fetchedUser && (
+					<Text style={styles.groupCodeText}>{fetchedUser.get('code')}</Text>
+				)}
+				<Pressable
+					onPress={() => {
+						navigation.navigate('Barcode');
+					}}
+					style={styles.scanButton}>
+					<Text style={styles.scanButtonText}>Scan Code</Text>
 				</Pressable>
-			)}
-			{fetchedUser && (
-				<Text style={styles.title}>{fetchedUser.get('code')}</Text>
-			)}
-			<Button
-				onPress={() => {
-					navigation.navigate('Barcode');
-				}}>
-				Scan code
-			</Button>
+			</LinearGradient>
 		</View>
 	);
 }
@@ -106,13 +114,39 @@ export default HomeScreen;
 const styles = StyleSheet.create({
 	rootContainer: {
 		flex: 1,
-		justifyContent: 'space-evenly',
 		alignItems: 'center',
-		padding: 32,
+		justifyContent: 'center',
+	},
+	gradientContainer: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: '100%',
 	},
 	title: {
+		color: 'white',
+		fontSize: 24,
+		fontWeight: 'bold',
+		marginBottom: 20,
+	},
+	qrCodeContainer: {
+		marginBottom: 20,
+	},
+	groupCodeText: {
+		color: 'white',
 		fontSize: 20,
 		fontWeight: 'bold',
-		marginBottom: 8,
+		marginBottom: 20,
+	},
+	scanButton: {
+		backgroundColor: Colors.primary700,
+		paddingVertical: 10,
+		paddingHorizontal: 20,
+		borderRadius: 5,
+	},
+	scanButtonText: {
+		color: 'white',
+		fontSize: 18,
+		fontWeight: 'bold',
 	},
 });

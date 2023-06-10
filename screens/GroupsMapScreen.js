@@ -7,14 +7,11 @@ export default function GroupsMapScreen({ route, navigation }) {
 	const [mapRegion, setMapRegion] = useState(null);
 
 	useEffect(() => {
-		console.log('ownerDetails', ownerDetails);
-		console.log('membersDetails', membersDetails);
-
 		const calculateZoomLevel = () => {
 			const { width, height } = Dimensions.get('window');
 			const zoomLevelPercentage = 2;
 			const latitudeDelta =
-				(360 / (Math.pow(2, 15) * (zoomLevelPercentage / 100))) *
+				(360 / (Math.pow(2, 14) * (zoomLevelPercentage / 100))) *
 				(height / 256);
 			const longitudeDelta = latitudeDelta * (width / height);
 			setMapRegion({
@@ -37,7 +34,11 @@ export default function GroupsMapScreen({ route, navigation }) {
 							return (
 								<Marker
 									key={index}
-									title={member.name}
+									title={
+										member.id === ownerDetails.id
+											? `admin: ${member.name}`
+											: member.name
+									}
 									coordinate={{
 										latitude: parseFloat(member.lat) ?? 37.78,
 										longitude: parseFloat(member.long) ?? -122.43,

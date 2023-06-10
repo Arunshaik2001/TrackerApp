@@ -4,10 +4,13 @@ import { View, Text } from 'react-native';
 import GroupList from '../components/Groups/GroupList';
 import { Colors } from '../constants/styles';
 import { AuthContext } from '../store/auth-context';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function GroupsListScreen({ route, navigation }) {
 	const [groupsList, setGroupList] = useState([]);
 	const authCtx = useContext(AuthContext);
+
+	const focused = useIsFocused();
 
 	useEffect(() => {
 		async function getUserDetails() {
@@ -27,8 +30,10 @@ export default function GroupsListScreen({ route, navigation }) {
 			}
 		}
 
-		getUserDetails();
-	}, []);
+		if (focused) {
+			getUserDetails();
+		}
+	}, [focused]);
 
 	async function getMapDetails(group) {
 		const groupDetails = group;
