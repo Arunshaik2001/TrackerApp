@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { AuthContext } from '../store/auth-context';
 import Button from '../components/ui/Button';
 import QRCode from 'react-native-qrcode-svg';
@@ -26,6 +26,31 @@ function HomeScreen({ route, navigation }) {
 		getUserDetails();
 	}, []);
 
+	async function getMapDetails() {
+		const userId = await AsyncStorage.getItem('userId');
+		const userMap = (await authCtx.fetchUsersById([userId]))[0];
+		const joinedGroups = userMap.groups;
+
+		const groupDetails = (await authCtx.fetchGroupsById(joinedGroups))[0];
+
+		const memberInGroupDetails = await authCtx.fetchUsersById(
+			groupDetails.members
+		);
+
+		const mapData = {
+			ownerDetails: null,
+			membersDetails: [],
+		};
+
+		memberInGroupDetails.forEach((member) => {
+			if (member.id === groupDetails.owner) {
+				mapData.ownerDetails = member;
+			}
+			mapData.membersDetails.push(member);
+		});
+		return mapData;
+	}
+
 	useEffect(() => {
 		const unsubscribe = navigation.addListener('focus', async () => {
 			if (route.params) {
@@ -50,7 +75,19 @@ function HomeScreen({ route, navigation }) {
 	return (
 		<View style={styles.rootContainer}>
 			<Text style={styles.title}>Your Group Code</Text>
-			{fetchedUser && <QRCode value={fetchedUser.get('code')} size={250} />}
+			{fetchedUser && (
+				<Pressable
+					onPress={async () => {
+						const { ownerDetails, membersDetails } = await getMapDetails();
+
+						navigation.navigate('MapsScreen', {
+							ownerDetails: ownerDetails,
+							membersDetails: membersDetails,
+						});
+					}}>
+					<QRCode value={fetchedUser.get('code')} size={250} />
+				</Pressable>
+			)}
 			{fetchedUser && (
 				<Text style={styles.title}>{fetchedUser.get('code')}</Text>
 			)}

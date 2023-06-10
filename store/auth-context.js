@@ -7,6 +7,8 @@ import { initializeApp } from 'firebase/app';
 import { firebaseConfig } from '../constants/constants';
 import { signIn, signUp, logOut } from '../util/auth';
 import { getFirestore } from 'firebase/firestore';
+import * as Location from 'expo-location';
+
 import {
 	createGroup,
 	getGroupsById,
@@ -37,6 +39,40 @@ function codeGenerator() {
 function AuthContextProvider({ children }) {
 	const [authToken, setAuthToken] = useState();
 
+	useEffect(() => {
+		let locationUpdatesTask;
+
+		async function locationListener(){
+			locationUpdatesTask = Location.watchPositionAsync(
+				{
+					accuracy: Location.Accuracy.BestForNavigation,
+					timeInterval: 30000,
+					distanceInterval: 10,
+				},
+				handleLocationUpdate
+			);
+
+		}
+		
+		async function handleLocationUpdate(location) {
+			const userId = await AsyncStorage.getItem('userId');
+			if (userId) {
+				updateUserById(userId, {
+					lat: location.coords.latitude,
+					long: location.coords.longitude,
+				});
+			}
+		}
+
+		locationListener()
+
+		return () => {
+			if(locationUpdatesTask){
+				locationUpdatesTask.remove()
+			}
+		};
+	}, []);
+
 	const app = initializeApp(firebaseConfig);
 
 	const auth = getAuth(app);
@@ -54,6 +90,7 @@ function AuthContextProvider({ children }) {
 			if (!isLogin) {
 				const code = codeGenerator();
 				const map = new Map();
+				AsyncStorage.setItem('userId', userCredentials.user.uid.toString());
 				map.set('id', userCredentials.user.uid.toString());
 				map.set('name', name.toString());
 				map.set('email', email.toString());
@@ -63,11 +100,14 @@ function AuthContextProvider({ children }) {
 				const userDataStringfy = JSON.stringify(Array.from(map.entries()));
 				console.log('userDataStringfy', userDataStringfy);
 				setUser(userDataStringfy);
+				let location = await Location.getCurrentPositionAsync({});
 				storeUserData(db, {
 					id: userCredentials.user.uid.toString(),
 					name: name.toString(),
 					email: email.toString(),
 					code: code.toString(),
+					lat: location.coords?.latitude?.toString(),
+					long: location.coords?.longitude?.toString(),
 				});
 				createGroup(db, {
 					code: code,

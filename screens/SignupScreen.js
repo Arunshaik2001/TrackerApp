@@ -13,7 +13,6 @@ function SignupScreen() {
 	async function signupHandler({ email, password, profileName }) {
 		setIsAuthenticating(true);
 		try {
-			console.log('auth');
 			const result = await authCtx.authenticate(
 				false,
 				email,

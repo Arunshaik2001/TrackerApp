@@ -108,12 +108,11 @@ export async function getGroupsById(db, groupIds) {
 export async function storeUserData(db, userData) {
 	try {
 		const id = userData.id?.toString();
-		console.log('values', id);
 		const docRef = await setDoc(doc(db, 'users', id), {
 			name: userData.name,
 			email: userData.email,
-			lat: '',
-			long: '',
+			lat: userData.lat ?? '',
+			long: userData.long ?? '',
 			code: userData.code,
 			groups: [userData.code],
 		});
